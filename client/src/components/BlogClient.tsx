@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, Clock, Tag } from "lucide-react";
 import { Reveal } from "@/components/PageComponents";
 import clsx from "clsx";
 
@@ -13,6 +14,7 @@ interface Post {
   date: string;
   readMin: string;
   excerpt: string;
+  thumbnail?: string;
 }
 interface Content {
   heroTag: string;
@@ -26,14 +28,17 @@ interface Content {
   posts: Post[];
 }
 
-const CAT_COLORS: Record<string, string> = {
-  News: "#D6FF00",
-  ዜና: "#D6FF00",
-  Teaching: "#A6FF4D",
-  ትምህርት: "#A6FF4D",
-  Article: "#D6FF00",
-  ጽሑፍ: "#D6FF00",
+const CAT_COLORS: Record<string, { bg: string; text: string }> = {
+  News:     { bg: "#D6FF00", text: "#1B1B1B" },
+  ዜና:      { bg: "#D6FF00", text: "#1B1B1B" },
+  Teaching: { bg: "#A6FF4D", text: "#1B1B1B" },
+  ትምህርት:  { bg: "#A6FF4D", text: "#1B1B1B" },
+  Article:  { bg: "#63d6ff", text: "#0a1f14" },
+  ጽሑፍ:    { bg: "#63d6ff", text: "#0a1f14" },
 };
+
+const FALLBACK_THUMB =
+  "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=800&auto=format&fit=crop";
 
 function PostCard({
   post,
@@ -50,156 +55,96 @@ function PostCard({
   isAm: boolean;
   delay?: number;
 }) {
-  const color = CAT_COLORS[post.cat] || "#A6FF4D";
+  const color = CAT_COLORS[post.cat] ?? { bg: "#A6FF4D", text: "#1B1B1B" };
+  const thumb = post.thumbnail || FALLBACK_THUMB;
+
   const excerptText = (() => {
     const text = (post.excerpt || "")
       .replace(/<[^>]*>/g, " ")
       .replace(/\s+/g, " ")
       .trim();
     if (!text) return "";
-    if (text.length <= 120) return text;
-    return `${text.slice(0, 120).trimEnd()}…`;
+    if (text.length <= 110) return text;
+    return `${text.slice(0, 110).trimEnd()}…`;
   })();
 
   return (
     <Reveal delay={delay}>
-      <article
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(214,255,0,.14), rgba(166,255,77,.08))",
-          borderRadius: 16,
-          overflow: "hidden",
-          border: "1.5px solid rgba(166,255,77,.14)",
-          transition: "all .3s",
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-          boxShadow: "0 18px 40px rgba(27,27,27,.08)",
-        }}
-        onMouseEnter={(e) => {
-          (e.currentTarget as HTMLElement).style.borderColor =
-            "rgba(166,255,77,.32)";
-          (e.currentTarget as HTMLElement).style.transform = "translateY(-3px)";
-          (e.currentTarget as HTMLElement).style.boxShadow =
-            "0 12px 40px rgba(27,27,27,.12)";
-        }}
-        onMouseLeave={(e) => {
-          (e.currentTarget as HTMLElement).style.borderColor =
-            "rgba(166,255,77,.14)";
-          (e.currentTarget as HTMLElement).style.transform = "none";
-          (e.currentTarget as HTMLElement).style.boxShadow =
-            "0 18px 40px rgba(27,27,27,.08)";
-        }}
+      <Link
+        href={`/${locale}/blog/${post.slug}`}
+        className="group block h-full rounded-2xl overflow-hidden border border-[rgba(166,255,77,.14)] bg-white shadow-[0_8px_32px_rgba(0,0,0,.06)] hover:shadow-[0_16px_48px_rgba(0,0,0,.12)] hover:-translate-y-1 transition-all duration-300"
       >
-        {/* Color band */}
-        <div style={{ height: 4, background: color }} />
-        <div
-          style={{
-            padding: "1.6rem",
-            display: "flex",
-            flexDirection: "column",
-            flex: 1,
-          }}
-        >
-          {/* Meta */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: ".6rem",
-              marginBottom: ".9rem",
-            }}
+        {/* Thumbnail */}
+        <div className="relative h-48 w-full overflow-hidden bg-slate-100">
+          <Image
+            src={thumb}
+            alt={post.title}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            unoptimized={thumb.startsWith("http")}
+          />
+          {/* Category badge overlaid on image */}
+          <span
+            className="absolute top-3 left-3 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full shadow-sm"
+            style={{ background: color.bg, color: color.text }}
           >
+            {post.cat}
+          </span>
+        </div>
+
+        {/* Body */}
+        <div className="flex flex-col flex-1 p-5">
+          {/* Date + read time */}
+          <div className="flex items-center gap-3 mb-3">
             <span
-              style={{
-                fontSize: ".55rem",
-                fontWeight: 700,
-                letterSpacing: ".1em",
-                textTransform: "uppercase",
-                padding: ".18rem .55rem",
-                borderRadius: 20,
-                background: color,
-                color: "#1B1B1B",
-              }}
-            >
-              {post.cat}
-            </span>
-            <span
-              className="font-sans"
-              style={{ fontSize: ".62rem", color: "rgba(51,51,51,.55)" }}
+              className="font-sans text-[0.62rem] text-slate-400"
             >
               {post.date}
             </span>
-            <span
-              className="font-sans"
-              style={{
-                fontSize: ".62rem",
-                color: "rgba(51,51,51,.48)",
-                marginLeft: "auto",
-              }}
-            >
-              {post.readMin} {minRead}
+            <span className="w-1 h-1 rounded-full bg-slate-300 block" />
+            <span className="flex items-center gap-1 font-sans text-[0.62rem] text-slate-400">
+              <Clock size={11} />
+              {post.readMin}&nbsp;{minRead}
             </span>
           </div>
+
           {/* Title */}
           <h3
             className={clsx(
-              "font-serif font-semibold",
-              isAm && "font-ethiopic"
+              "font-bold leading-snug text-[#163325] group-hover:text-[#1e6b3b] transition-colors mb-2",
+              isAm ? "font-ethiopic text-[1rem]" : "font-serif text-[1.05rem]"
             )}
-            style={{
-              fontSize: "1.08rem",
-              color: "#1B1B1B",
-              lineHeight: isAm ? 1.45 : 1.2,
-              marginBottom: ".75rem",
-              flex: 1,
-            }}
           >
             {post.title}
           </h3>
+
           {/* Excerpt */}
-          <p
-            className={clsx(
-              isAm ? "font-ethiopic text-[.8rem]" : "font-sans text-[.83rem]"
-            )}
-            style={{
-              color: "rgba(51,51,51,.72)",
-              lineHeight: 1.75,
-              marginBottom: "1.2rem",
-              display: "-webkit-box",
-              WebkitLineClamp: 3,
-              WebkitBoxOrient: "vertical",
-              overflow: "hidden",
-            }}
-          >
-            {excerptText}
-          </p>
+          {excerptText && (
+            <p
+              className={clsx(
+                "text-slate-500 leading-relaxed flex-1",
+                isAm ? "font-ethiopic text-[0.8rem]" : "font-sans text-[0.82rem]"
+              )}
+            >
+              {excerptText}
+            </p>
+          )}
+
           {/* Read more */}
-          <Link
-            href={`/${locale}/blog/${post.slug}`}
+          <div
             className={clsx(
+              "mt-4 pt-4 border-t border-[rgba(166,255,77,.2)] flex items-center gap-1.5 font-semibold text-[#1e6b3b] group-hover:gap-2.5 transition-all",
               isAm
-                ? "font-ethiopic text-[.78rem]"
-                : "font-sans text-[.7rem] uppercase tracking-[.1em]"
+                ? "font-ethiopic text-[0.78rem]"
+                : "font-sans text-[0.7rem] uppercase tracking-[.1em]"
             )}
-            style={{
-              color: "#1B1B1B",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: ".4rem",
-              paddingTop: ".8rem",
-              borderTop: "1px solid rgba(166,255,77,.16)",
-              transition: "gap .2s",
-              fontWeight: 600,
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.gap = ".7rem")}
-            onMouseLeave={(e) => (e.currentTarget.style.gap = ".4rem")}
           >
             {readMore}
-            <ArrowRight size={14} />
-          </Link>
+            <ArrowRight size={13} />
+          </div>
         </div>
-      </article>
+      </Link>
     </Reveal>
   );
 }
@@ -247,6 +192,7 @@ export default function BlogClient({
           "linear-gradient(180deg, rgba(247,247,247,.94), rgba(227,239,38,.08))",
       }}
     >
+      {/* ── HERO ── */}
       <section className="relative overflow-hidden">
         <div
           className="absolute inset-0 bg-cover bg-center"
@@ -324,7 +270,7 @@ export default function BlogClient({
         </div>
       </section>
 
-      {/* Tab bar */}
+      {/* ── TAB BAR ── */}
       <div
         id="blog-content"
         style={{
@@ -374,28 +320,34 @@ export default function BlogClient({
         </div>
       </div>
 
-      {/* Posts grid */}
+      {/* ── POSTS GRID ── */}
       <section style={{ padding: "4rem 2.5rem 6rem" }}>
         <div style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill,minmax(320px,1fr))",
-              gap: "1.4rem",
-            }}
-          >
-            {filtered.map((post, i) => (
-              <PostCard
-                key={i}
-                post={post}
-                locale={locale}
-                readMore={c.readMore}
-                minRead={c.minRead}
-                isAm={isAm}
-                delay={i * 0.06}
-              />
-            ))}
-          </div>
+          {filtered.length === 0 ? (
+            <div className="py-24 text-center text-slate-400 text-sm">
+              No posts found in this category.
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill,minmax(300px,1fr))",
+                gap: "1.5rem",
+              }}
+            >
+              {filtered.map((post, i) => (
+                <PostCard
+                  key={i}
+                  post={post}
+                  locale={locale}
+                  readMore={c.readMore}
+                  minRead={c.minRead}
+                  isAm={isAm}
+                  delay={i * 0.06}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

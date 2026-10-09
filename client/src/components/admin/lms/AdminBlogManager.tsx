@@ -5,11 +5,17 @@ import {
   Plus,
   Search,
   FileText,
-  User,
   Edit2,
   Trash2,
   Clock,
+  ImageIcon,
 } from "lucide-react";
+
+const CAT_COLORS: Record<string, { bg: string; text: string }> = {
+  News:     { bg: "#D6FF00", text: "#112014" },
+  Teaching: { bg: "#A6FF4D", text: "#112014" },
+  Article:  { bg: "#63d6ff", text: "#0a1f14" },
+};
 
 interface Blog {
   _id: string;
@@ -219,61 +225,93 @@ export default function AdminBlogManager() {
           Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="h-48 animate-pulse rounded-3xl bg-slate-100"
+              className="h-72 animate-pulse rounded-2xl bg-white/5"
             />
           ))
         ) : filteredBlogs.length === 0 ? (
           <div className="col-span-full py-20 text-center">
-            <FileText className="mx-auto text-slate-300 mb-4" size={48} />
+            <FileText className="mx-auto text-slate-600 mb-4" size={48} />
             <p className="text-slate-500 font-medium tracking-tight">
               No blogs found matching your criteria.
             </p>
           </div>
         ) : (
-          filteredBlogs.map((blog) => (
+        filteredBlogs.map((blog) => {
+            const catColor = CAT_COLORS[blog.category] ?? { bg: "#e2e8f0", text: "#334155" };
+            const excerptText = (blog.excerpt || "")
+              .replace(/<[^>]*>/g, " ")
+              .replace(/\s+/g, " ")
+              .trim()
+              .slice(0, 100);
+
+            return (
             <div
               key={blog._id}
-              className="group relative overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 transition-all hover:border-[#d6ff00] hover:shadow-xl"
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-[#0d1610] transition-all hover:border-[#d6ff00]/40 hover:shadow-[0_8px_32px_rgba(214,255,0,.08)]"
             >
-              <div className="flex items-start justify-between">
-                <div className="p-3 rounded-2xl bg-[#f4faf5] text-[#24573c]">
-                  <FileText size={24} />
-                </div>
-                <div className="flex gap-2">
+              {/* Thumbnail */}
+              <div className="relative h-44 w-full overflow-hidden bg-[#0b1810] shrink-0">
+                {blog.thumbnail ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={blog.thumbnail}
+                    alt={blog.title}
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <div className="flex h-full items-center justify-center text-slate-700">
+                    <ImageIcon size={36} />
+                  </div>
+                )}
+                {/* Category badge */}
+                <span
+                  className="absolute top-3 left-3 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full"
+                  style={{ background: catColor.bg, color: catColor.text }}
+                >
+                  {blog.category || "News"}
+                </span>
+                {/* Action buttons */}
+                <div className="absolute top-3 right-3 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     onClick={() => handleOpenEdit(blog)}
-                    className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
+                    className="p-1.5 rounded-lg bg-black/60 text-slate-300 hover:text-[#d6ff00] hover:bg-black/80 transition-all backdrop-blur-sm"
                   >
-                    <Edit2 size={16} />
+                    <Edit2 size={14} />
                   </button>
                   <button
                     onClick={() => handleDelete(blog._id)}
-                    className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-red-600 hover:bg-red-50 transition-all"
+                    className="p-1.5 rounded-lg bg-black/60 text-slate-300 hover:text-red-400 hover:bg-black/80 transition-all backdrop-blur-sm"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={14} />
                   </button>
                 </div>
               </div>
 
-              <div className="mt-4">
-                <h3 className="text-lg font-bold text-[#163325] leading-tight group-hover:text-blue-700 transition-colors line-clamp-2">
+              {/* Body */}
+              <div className="flex flex-col flex-1 p-5">
+                <h3 className="text-[0.95rem] font-bold text-white leading-snug line-clamp-2 group-hover:text-[#d6ff00] transition-colors mb-2">
                   {blog.title}
                 </h3>
-                <p className="mt-2 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                  {blog.category || "News"}
-                </p>
-              </div>
+                {excerptText && (
+                  <p className="text-[0.78rem] text-slate-400 leading-relaxed line-clamp-2 flex-1 mb-4">
+                    {excerptText}{excerptText.length >= 100 ? "…" : ""}
+                  </p>
+                )}
 
-              <div className="mt-6 pt-6 border-t border-slate-100 flex justify-end">
-                <div className="flex items-center gap-1.5 text-slate-400">
-                  <Clock size={12} />
-                  <span className="text-xs font-medium">
-                    {blog.readMin} min read
+                {/* Footer meta */}
+                <div className="mt-auto pt-4 border-t border-white/[0.06] flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-slate-500">
+                    <Clock size={12} />
+                    <span className="text-xs">{blog.readMin} min read</span>
+                  </div>
+                  <span className="text-[10px] text-slate-600">
+                    {blog.createdAt ? new Date(blog.createdAt).toLocaleDateString() : ""}
                   </span>
                 </div>
               </div>
             </div>
-          ))
+            );
+          })
         )}
       </div>
 

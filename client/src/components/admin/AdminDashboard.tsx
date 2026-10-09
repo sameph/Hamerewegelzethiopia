@@ -455,7 +455,7 @@ export default function AdminDashboard({ section }: { section?: string }) {
                   const active = current === slug;
                   return (
                     <li key={slug}>
-                      <a
+                      <Link
                         href={`${prefix}/${slug}`}
                         onClick={() => setSidebarOpen(false)}
                         className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${
@@ -466,7 +466,7 @@ export default function AdminDashboard({ section }: { section?: string }) {
                       >
                         <Icon size={18} />
                         {label}
-                      </a>
+                      </Link>
                     </li>
                   );
                 })}
