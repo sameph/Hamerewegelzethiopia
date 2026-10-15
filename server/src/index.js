@@ -32,6 +32,7 @@ const app = express();
 // Enable CORS
 const allowedOrigins = [
   'https://hamre-wengel.vercel.app',
+  'https://hamerewongelzethiopia.org',
   'http://localhost:3000',
   'http://127.0.0.1:3000',
   'http://localhost:3500',

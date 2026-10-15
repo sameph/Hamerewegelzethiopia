@@ -128,3 +128,4 @@ echo "  └── server/          ← upload to ~/apps/hamerewegelz/ on cPanel"
 echo ""
 echo "  Next steps: read DEPLOY.md for the full cPanel walkthrough."
 echo ""
+

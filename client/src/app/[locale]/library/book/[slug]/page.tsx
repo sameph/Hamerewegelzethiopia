@@ -37,7 +37,9 @@ async function fetchBookSlugs() {
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
 
   try {
-    const response = await fetch(`${API_URL}/books`, { cache: "no-store" });
+    const response = await fetch(`${API_URL}/books`, {
+      next: { revalidate: 60 },
+    });
     const result = await response.json();
     if (response.ok && result?.success && Array.isArray(result.data)) {
       return result.data

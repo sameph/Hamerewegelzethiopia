@@ -8,19 +8,17 @@ import ScrollProgress from "@/components/ScrollProgress";
 import HomeFooter from "@/components/home/Footer";
 import type { Locale } from "@/context/LanguageContext";
 
-const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 const locales = ["en", "am"] as const;
 const fallbackSlugs = ["p1", "p2", "p3", "p4", "p5", "p6"];
 
 export async function generateStaticParams() {
-  const API_BASE_STATIC =
-    process.env.NEXT_PUBLIC_API_URL || "";
+  const API_BASE_STATIC = process.env.NEXT_PUBLIC_API_URL || "";
   let slugs: string[] = fallbackSlugs;
 
   try {
     const res = await fetch(`${API_BASE_STATIC}/blogs`, {
-      cache: "no-store",
+      next: { revalidate: 60 },
     });
     if (res.ok) {
       const json = await res.json();
@@ -64,7 +62,9 @@ export default async function BlogPostPage({
   } | null = null;
 
   try {
-    const res = await fetch(`${API_BASE}/blogs/${slug}`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE}/blogs/${slug}`, {
+      next: { revalidate: 60 },
+    });
     if (res.ok) {
       const json = await res.json();
       if (json.success && json.data) {

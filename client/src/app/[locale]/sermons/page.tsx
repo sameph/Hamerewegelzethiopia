@@ -23,7 +23,11 @@ export default async function SermonsPage({
     title: t(`s${i}_title` as any),
     spkr: t(`s${i}_spkr` as any),
     series: "",
-    category: (i <= 2 ? "worship" : i <= 4 ? "preaching" : "teaching") as string,
+    category: (i <= 2
+      ? "worship"
+      : i <= 4
+      ? "preaching"
+      : "teaching") as string,
     type: (i <= 3 ? "video" : "audio") as "video" | "audio",
     youtubeUrl: "",
     youtubeId: "",
@@ -37,7 +41,9 @@ export default async function SermonsPage({
   let sermons: typeof fallbackSermons = fallbackSermons;
 
   try {
-    const res = await fetch(`${API_BASE}/sermons`, { cache: "no-store" });
+    const res = await fetch(`${API_BASE}/sermons`, {
+      next: { revalidate: 60 },
+    });
     if (res.ok) {
       const json = await res.json();
       if (json.success && Array.isArray(json.data)) {
